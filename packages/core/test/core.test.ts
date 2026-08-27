@@ -93,6 +93,16 @@ describe('contract definitions', () => {
     >()
   })
 
+  it('attaches optional immutable schema metadata without changing inference', () => {
+    const schema = defineSchema((input): string => String(input), {
+      jsonSchema: { minLength: 1, type: 'string' },
+    })
+
+    expect(schema.metadata?.jsonSchema).toEqual({ minLength: 1, type: 'string' })
+    expect(Object.isFrozen(schema.metadata)).toBe(true)
+    expectTypeOf(schema.parse('customer-42')).toEqualTypeOf<string>()
+  })
+
   it.each([
     ['', '1.0.0', 'EMPTY_CONTRACT_NAME'],
     ['customer-api', '', 'EMPTY_CONTRACT_VERSION'],

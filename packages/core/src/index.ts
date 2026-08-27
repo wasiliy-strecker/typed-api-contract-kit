@@ -5,7 +5,15 @@ export {
   UndeclaredResponseError,
   type ContractDefinitionErrorCode,
 } from './errors.js'
-export { defineSchema, type RuntimeSchema, type SchemaOutput } from './schema.js'
+export {
+  defineSchema,
+  type JsonPrimitive,
+  type JsonSchema,
+  type JsonValue,
+  type RuntimeSchema,
+  type SchemaMetadata,
+  type SchemaOutput,
+} from './schema.js'
 export type {
   AnyApiContractDefinition,
   AnyOperationDefinition,

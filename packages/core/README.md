@@ -5,7 +5,8 @@ Contract Kit.
 
 The package owns no validation library. Any schema implementation with a `parse(unknown)` method can
 participate, keeping contract types independent from Fastify, React, code generation, and a specific
-schema vendor.
+schema vendor. A schema may also expose optional JSON Schema metadata for documentation and
+compatibility tooling.
 
 ```ts
 import {

@@ -37,6 +37,16 @@ importers:
 
   packages/core: {}
 
+  packages/zod:
+    dependencies:
+      '@typed-api-contract-kit/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+
 packages:
   '@babel/helper-string-parser@7.29.7':
     resolution:
@@ -2236,6 +2246,12 @@ packages:
       }
     engines: { node: '>=10' }
 
+  zod@4.4.3:
+    resolution:
+      {
+        integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==,
+      }
+
 snapshots:
   '@babel/helper-string-parser@7.29.7': {}
 
@@ -3385,3 +3401,5 @@ snapshots:
   word-wrap@1.2.5: {}
 
   yocto-queue@0.1.0: {}
+
+  zod@4.4.3: {}

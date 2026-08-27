@@ -53,14 +53,16 @@ const request = parseRequest('getCustomer', getCustomer, {
 })
 ```
 
-The core deliberately accepts only a small `RuntimeSchema<T>` capability. Zod, TypeBox, Valibot,
-JSON Schema validators, or application-specific parsers can be adapted without becoming transitive
-dependencies of every consumer.
+The core deliberately accepts only a small `RuntimeSchema<T>` capability plus optional JSON Schema
+metadata. Zod, TypeBox, Valibot, JSON Schema validators, or application-specific parsers can be
+adapted without becoming transitive dependencies of every consumer. The separately versioned Zod 4
+adapter already provides parsing, output inference, and Draft 2020-12 metadata.
 
 ## Architecture
 
 ```text
 packages/core/               Contract model and runtime parsing (implemented)
+packages/zod/                Optional Zod 4 and JSON Schema adapter (implemented)
 packages/fastify/            Server request/response enforcement (planned)
 packages/fetch-client/       Typed transport and error model (planned)
 packages/react-query/        Query and mutation integration (planned)
@@ -88,7 +90,7 @@ and 26.
 ## Roadmap
 
 1. Framework-neutral contract model and type inference — implemented
-2. Validation-library adapters and schema metadata
+2. JSON Schema metadata and optional Zod 4 adapter — implemented
 3. Fastify request and response enforcement
 4. Typed Fetch client with explicit transport and problem errors
 5. React Query integration with stable cache keys

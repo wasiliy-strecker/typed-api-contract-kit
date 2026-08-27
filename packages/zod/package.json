@@ -1,0 +1,48 @@
+{
+  "name": "@typed-api-contract-kit/zod",
+  "version": "0.1.0",
+  "description": "Zod 4 runtime validation and JSON Schema metadata adapter for Typed API Contract Kit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wasiliy-strecker/typed-api-contract-kit.git",
+    "directory": "packages/zod"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@typed-api-contract-kit/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "zod": ">=4.4.0 <5"
+  },
+  "devDependencies": {
+    "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
