@@ -6,6 +6,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@typed-api-contract-kit/core': resolve(import.meta.dirname, 'packages/core/src/index.ts'),
+      '@typed-api-contract-kit/zod': resolve(import.meta.dirname, 'packages/zod/src/index.ts'),
     },
   },
   test: {

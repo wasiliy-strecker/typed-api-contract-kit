@@ -1,0 +1,58 @@
+{
+  "name": "@typed-api-contract-kit/fastify",
+  "version": "0.1.0",
+  "description": "Typed Fastify request and response enforcement for Typed API Contract Kit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wasiliy-strecker/typed-api-contract-kit.git",
+    "directory": "packages/fastify"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@typed-api-contract-kit/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "fastify": ">=5.12.0 <6"
+  },
+  "peerDependenciesMeta": {
+    "fastify": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@typed-api-contract-kit/zod": "workspace:*",
+    "fastify": "5.12.1",
+    "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

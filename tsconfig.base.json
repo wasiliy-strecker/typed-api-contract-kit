@@ -14,7 +14,8 @@
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "paths": {
-      "@typed-api-contract-kit/core": ["packages/core/src/index.ts"]
+      "@typed-api-contract-kit/core": ["packages/core/src/index.ts"],
+      "@typed-api-contract-kit/zod": ["packages/zod/src/index.ts"]
     },
     "strict": true,
     "target": "ES2022",
