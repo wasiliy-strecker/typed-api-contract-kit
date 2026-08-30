@@ -3,6 +3,7 @@ import {
   UndeclaredResponseError,
   parseRequest,
   parseResponse,
+  type AnyApiContractDefinition,
   type AnyOperationDefinition,
   type RequestFor,
   type ResponseFor,
@@ -11,6 +12,9 @@ import type { FastifyInstance, FastifyRequest } from 'fastify'
 
 export type FastifyContractErrorCode =
   'CONTRACT_REQUEST_VALIDATION_FAILED' | 'CONTRACT_RESPONSE_VALIDATION_FAILED'
+
+export type FastifyContractRegistrationErrorCode =
+  'CONTRACT_HANDLER_MISSING' | 'CONTRACT_HANDLER_UNKNOWN'
 
 export class FastifyContractError extends Error {
   public override readonly name = 'FastifyContractError'
@@ -23,6 +27,18 @@ export class FastifyContractError extends Error {
   ) {
     const boundary = statusCode === 400 ? 'Request' : 'Response'
     super(`${boundary} contract validation failed for ${operationId}`, options)
+  }
+}
+
+export class FastifyContractRegistrationError extends Error {
+  public override readonly name = 'FastifyContractRegistrationError'
+
+  public constructor(
+    public readonly code: FastifyContractRegistrationErrorCode,
+    public readonly operationId: string,
+  ) {
+    const issue = code === 'CONTRACT_HANDLER_MISSING' ? 'Missing' : 'Unknown'
+    super(`${issue} contract handler for ${operationId}`)
   }
 }
 
@@ -39,6 +55,17 @@ export interface RegisterContractRouteOptions<Operation extends AnyOperationDefi
   readonly handler: ContractHandler<Operation>
   readonly operation: Operation
   readonly operationId: string
+}
+
+export type ContractHandlers<Contract extends AnyApiContractDefinition> = Readonly<{
+  [OperationId in keyof Contract['operations']]: ContractHandler<
+    Contract['operations'][OperationId]
+  >
+}>
+
+export interface RegisterContractRoutesOptions<Contract extends AnyApiContractDefinition> {
+  readonly contract: Contract
+  readonly handlers: ContractHandlers<Contract>
 }
 
 function requestError(operationId: string, cause: ContractValueError): FastifyContractError {
@@ -108,4 +135,47 @@ export function registerContractRoute<Operation extends AnyOperationDefinition>(
       }
     },
   })
+}
+
+function registerOperation<
+  Contract extends AnyApiContractDefinition,
+  OperationId extends Extract<keyof Contract['operations'], string>,
+>(
+  fastify: FastifyInstance,
+  options: RegisterContractRoutesOptions<Contract>,
+  operationId: OperationId,
+): void {
+  const operation = options.contract.operations[operationId] as Contract['operations'][OperationId]
+
+  registerContractRoute<Contract['operations'][OperationId]>(fastify, {
+    handler: options.handlers[operationId],
+    operation,
+    operationId,
+  })
+}
+
+export function registerContractRoutes<Contract extends AnyApiContractDefinition>(
+  fastify: FastifyInstance,
+  options: RegisterContractRoutesOptions<Contract>,
+): void {
+  const operationIds = Object.keys(options.contract.operations) as Array<
+    Extract<keyof Contract['operations'], string>
+  >
+  const runtimeHandlers = options.handlers as Readonly<Record<string, unknown>>
+
+  for (const operationId of operationIds) {
+    if (typeof runtimeHandlers[operationId] !== 'function') {
+      throw new FastifyContractRegistrationError('CONTRACT_HANDLER_MISSING', operationId)
+    }
+  }
+
+  for (const operationId of Object.keys(runtimeHandlers)) {
+    if (!Object.hasOwn(options.contract.operations, operationId)) {
+      throw new FastifyContractRegistrationError('CONTRACT_HANDLER_UNKNOWN', operationId)
+    }
+  }
+
+  for (const operationId of operationIds) {
+    registerOperation(fastify, options, operationId)
+  }
 }

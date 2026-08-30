@@ -2,10 +2,14 @@ import Fastify, { type FastifyInstance } from 'fastify'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
 
-import { defineOperation, type ResponseFor } from '@typed-api-contract-kit/core'
+import { defineContract, defineOperation, type ResponseFor } from '@typed-api-contract-kit/core'
 import { fromZod } from '@typed-api-contract-kit/zod'
 
-import { registerContractRoute } from '../src/index.js'
+import {
+  registerContractRoute,
+  registerContractRoutes,
+  type FastifyContractRegistrationError,
+} from '../src/index.js'
 
 const getCustomer = defineOperation({
   method: 'GET',
@@ -21,6 +25,23 @@ const getCustomer = defineOperation({
     200: fromZod(z.object({ id: z.uuid(), name: z.string().min(1) })),
     404: fromZod(z.object({ message: z.string().min(1) })),
   },
+})
+
+const createCustomer = defineOperation({
+  method: 'POST',
+  path: '/customers',
+  request: {
+    body: fromZod(z.object({ name: z.string().min(1) })),
+  },
+  responses: {
+    201: fromZod(z.object({ id: z.uuid(), name: z.string().min(1) })),
+  },
+})
+
+const customerContract = defineContract({
+  name: 'customer-api',
+  operations: { createCustomer, getCustomer },
+  version: '1.0.0',
 })
 
 const applications: FastifyInstance[] = []
@@ -161,5 +182,113 @@ describe('registerContractRoute', () => {
     expect(response.statusCode).toBe(500)
     expect(response.json()).toMatchObject({ message: 'Database unavailable' })
     expect(response.json()).not.toHaveProperty('code', 'CONTRACT_RESPONSE_VALIDATION_FAILED')
+  })
+})
+
+describe('registerContractRoutes', () => {
+  it('registers every operation with its operation-specific handler', async () => {
+    const application = createApplication()
+
+    registerContractRoutes(application, {
+      contract: customerContract,
+      handlers: {
+        createCustomer: ({ request }) => ({
+          body: {
+            id: 'f18c452a-1b77-4db9-b06b-957aee64d417',
+            name: request.body.name,
+          },
+          status: 201,
+        }),
+        getCustomer: ({ request }) => ({
+          body: { id: request.params.customerId, name: 'Ada' },
+          status: 200,
+        }),
+      },
+    })
+
+    const created = await application.inject({
+      body: { name: 'Grace' },
+      method: 'POST',
+      url: '/customers',
+    })
+    const loaded = await application.inject({
+      method: 'GET',
+      url: '/customers/f18c452a-1b77-4db9-b06b-957aee64d417?includeHistory=false',
+    })
+
+    expect(created.statusCode).toBe(201)
+    expect(created.json()).toEqual({
+      id: 'f18c452a-1b77-4db9-b06b-957aee64d417',
+      name: 'Grace',
+    })
+    expect(loaded.statusCode).toBe(200)
+    expect(loaded.json()).toEqual({
+      id: 'f18c452a-1b77-4db9-b06b-957aee64d417',
+      name: 'Ada',
+    })
+  })
+
+  it('rejects a missing handler before registering any routes', () => {
+    const application = createApplication()
+
+    expect(() =>
+      registerContractRoutes(application, {
+        contract: customerContract,
+        handlers: {
+          createCustomer: () => ({
+            body: { id: 'f18c452a-1b77-4db9-b06b-957aee64d417', name: 'Grace' },
+            status: 201,
+          }),
+        } as never,
+      }),
+    ).toThrowError(
+      expect.objectContaining<Partial<FastifyContractRegistrationError>>({
+        code: 'CONTRACT_HANDLER_MISSING',
+        operationId: 'getCustomer',
+      }),
+    )
+
+    expect(() =>
+      registerContractRoute(application, {
+        handler: () => ({ body: { message: 'not found' }, status: 404 }) as const,
+        operation: getCustomer,
+        operationId: 'getCustomer',
+      }),
+    ).not.toThrow()
+  })
+
+  it('rejects an unknown handler before registering any routes', () => {
+    const application = createApplication()
+
+    expect(() =>
+      registerContractRoutes(application, {
+        contract: customerContract,
+        handlers: {
+          createCustomer: () => ({
+            body: { id: 'f18c452a-1b77-4db9-b06b-957aee64d417', name: 'Grace' },
+            status: 201,
+          }),
+          getCustomer: () => ({ body: { message: 'not found' }, status: 404 }),
+          removeCustomer: () => ({ body: undefined, status: 204 }),
+        } as never,
+      }),
+    ).toThrowError(
+      expect.objectContaining<Partial<FastifyContractRegistrationError>>({
+        code: 'CONTRACT_HANDLER_UNKNOWN',
+        operationId: 'removeCustomer',
+      }),
+    )
+
+    expect(() =>
+      registerContractRoute(application, {
+        handler: () =>
+          ({
+            body: { id: 'f18c452a-1b77-4db9-b06b-957aee64d417', name: 'Grace' },
+            status: 201,
+          }) as const,
+        operation: createCustomer,
+        operationId: 'createCustomer',
+      }),
+    ).not.toThrow()
   })
 })
