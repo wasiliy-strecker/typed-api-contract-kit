@@ -64,7 +64,7 @@ adapter already provides parsing, output inference, and Draft 2020-12 metadata.
 packages/core/               Contract model and runtime parsing (implemented)
 packages/zod/                Optional Zod 4 and JSON Schema adapter (implemented)
 packages/fastify/            Typed Fastify routes and contract handler maps (implemented)
-packages/fetch-client/       Typed transport and error model (planned)
+packages/fetch-client/       Typed single-operation Fetch execution (implemented)
 packages/react-query/        Query and mutation integration (planned)
 packages/openapi/            OpenAPI 3.1 generation (planned)
 packages/compatibility-cli/  Breaking-change analysis (planned)
@@ -92,7 +92,7 @@ and 26.
 1. Framework-neutral contract model and type inference — implemented
 2. JSON Schema metadata and optional Zod 4 adapter — implemented
 3. Fastify request and response enforcement — operation and contract adapters implemented
-4. Typed Fetch client with explicit transport and problem errors
+4. Typed Fetch client — single-operation executor implemented; error model and facade planned
 5. React Query integration with stable cache keys
 6. Deterministic OpenAPI 3.1 generation
 7. Compatibility CLI for breaking contract changes
